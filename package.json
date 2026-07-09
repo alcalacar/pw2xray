@@ -1,0 +1,24 @@
+{
+  "name": "pw-test-toolkit",
+  "version": "0.1.0",
+  "description": "Infraestructura compartida de Xray/Jira y utilidades de CI para los repos de regresión Playwright de Inteligo (PW_SAB, sab-publica, ...).",
+  "type": "commonjs",
+  "main": "src/xray.ts",
+  "exports": {
+    "./xray": "./src/xray.ts",
+    "./playwright-report": "./src/playwright-report.ts",
+    "./check-secrets": "./src/check-secrets.ts",
+    "./upload-to-xray": "./src/upload-to-xray.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "dotenv": ">=16"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "dotenv": "^17.4.2",
+    "typescript": "^7.0.2"
+  }
+}
