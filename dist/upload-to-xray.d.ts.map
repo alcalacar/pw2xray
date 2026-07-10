@@ -1,0 +1,1 @@
+{"version":3,"file":"upload-to-xray.d.ts","sourceRoot":"","sources":["../src/upload-to-xray.ts"],"names":[],"mappings":"AA0GA,MAAM,WAAW,mBAAmB;IACnC,uFAAuF;IACvF,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,qGAAqG;IACrG,eAAe,CAAC,EAAE,MAAM,CAAC;CACzB;AAOD,wBAAsB,YAAY,CAAC,OAAO,GAAE,mBAAwB,GAAG,OAAO,CAAC,IAAI,CAAC,CAwCnF"}
