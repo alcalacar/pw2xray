@@ -1,4 +1,4 @@
-# pw-test-toolkit
+# pw2xray
 
 Infraestructura compartida entre los repos de regresión Playwright de Inteligo
 (hoy: `PW_SAB`, `sab-publica`). No es un repo de tests — es la lógica de
@@ -30,7 +30,7 @@ una versión publicada normal):
 
 ```json
 "devDependencies": {
-  "pw-test-toolkit": "git+file:///C:/Proyectos/pw-test-toolkit#v0.1.0"
+  "pw2xray": "git+https://github.com/alcalacar/pw2xray.git#v0.1.0"
 }
 ```
 
@@ -39,6 +39,12 @@ llaman a las funciones exportadas, pasando la configuración propia de ese repo
 (project key de Jira ya viene de `JIRA_PROJECT_KEY` en `.env`, no hace falta
 pasarlo a mano). Ver `scripts/check-secrets.ts` y `scripts/upload-to-xray.ts`
 en `sab-publica` para el ejemplo de referencia.
+
+Repos consumidores actuales: `PW_SAB` (Custodia SAB, BDD) y `sab-publica` (web
+pública inteligosab.com). Ambos usan además las primitivas de `src/xray.ts`
+directamente en scripts propios (import de features Cucumber, Test Plans,
+verificación contra Jira) que no forman parte de este paquete por ser lógica
+específica de cada repo.
 
 ## Versionado
 
