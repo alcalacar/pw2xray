@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { XRAY_API, getCloudToken, graphql, sleep } from "./xray";
-import { collectSpecsWithImages, PlaywrightAttachment } from "./playwright-report";
+import { XRAY_API, getCloudToken, graphql, sleep, addEvidenceToTestRun } from "./xray";
+import { collectSpecsWithImages, PlaywrightAttachment, toXrayEvidence } from "./playwright-report";
 
 function buildInfo(jiraProjectKey: string) {
 	return {
@@ -82,31 +82,6 @@ async function getTestRunsForExecution(token: string, testExecKey: string, inten
 	return [];
 }
 
-interface AddEvidenceResult {
-	addEvidenceToTestRun: { addedEvidence: string[]; warnings: string[] };
-}
-
-async function attachEvidence(token: string, testRunId: string, attachments: PlaywrightAttachment[]) {
-	const mutation = `mutation($id: String!, $evidence: [AttachmentDataInput]!) {
-		addEvidenceToTestRun(id: $id, evidence: $evidence) {
-			addedEvidence
-			warnings
-		}
-	}`;
-	const variables = {
-		id: testRunId,
-		evidence: attachments.map((a) => {
-			const ext = a.contentType.split("/")[1] || "png";
-			return {
-				data: a.body ? a.body : fs.readFileSync(a.path!).toString("base64"),
-				filename: `${a.name}.${ext}`,
-				mimeType: a.contentType,
-			};
-		}),
-	};
-	return graphql<AddEvidenceResult>(token, mutation, variables);
-}
-
 async function subirEvidencia(token: string, testExecKey: string, resultsJsonPath: string) {
 	const screenshotsByTitle = collectScreenshotsByTitle(resultsJsonPath);
 	if (screenshotsByTitle.length === 0) {
@@ -121,10 +96,10 @@ async function subirEvidencia(token: string, testExecKey: string, resultsJsonPat
 			console.warn(`  aviso: no se encontro Test Run para "${title}", no se adjunto evidencia`);
 			continue;
 		}
-		const result = await attachEvidence(token, testRun.id, attachments);
+		const result = await addEvidenceToTestRun(token, testRun.id, toXrayEvidence(attachments));
 		console.log(`  evidencia adjuntada (${attachments.length}): "${title}" -> testRun ${testRun.id}`);
-		if (result.addEvidenceToTestRun.warnings?.length) {
-			console.warn(`    warnings: ${result.addEvidenceToTestRun.warnings.join(", ")}`);
+		if (result.warnings?.length) {
+			console.warn(`    warnings: ${result.warnings.join(", ")}`);
 		}
 	}
 }

@@ -37,6 +37,23 @@ detalle de qué falta para un build/publish "como se debe").
   busca de patrones de credenciales.
 - `src/upload-to-xray.ts` — importa un reporte JUnit a Xray (crea una Test
   Execution nueva) y adjunta evidencia a cada Test Run.
+- `src/step-evidence-reporter.ts` — reporter custom de Playwright que captura
+  qué adjunto (`testInfo.attach()`) pertenece a qué step de Gherkin. Existe
+  porque el reporter JSON incorporado de Playwright **no** serializa esa
+  asociación (`JSONReportTestStep` no tiene `attachments`, a diferencia del
+  `TestStep` en vivo de la API de Reporter) — sin este reporter corriendo en
+  paralelo a `json`/`junit`, esa info se pierde apenas termina la corrida.
+  Se usa junto con `collectStepEvidence` (en `playwright-report.ts`) y
+  `addEvidenceToTestRunStep` (en `xray.ts`) para adjuntar evidencia a un step
+  puntual (Given/When/Then) en vez de al Test Run completo.
+- `src/sync-scenario.ts` — automatiza el ciclo import → verificar por
+  contenido → tag-back que si no se hace a mano: sube uno o más escenarios
+  Gherkin sin tag como Tests Cucumber en un solo request (evita que Xray
+  matchee mal escenarios sin tag muy parecidos entre sí), confirma por
+  contenido (no por orden) que cada Test devuelto corresponde al escenario
+  esperado, tagea el `.feature` real, y opcionalmente reemplaza un Test viejo
+  por el nuevo en un Test Plan. Solo soporta `Scenario:` simple, no
+  `Scenario Outline:` con Examples.
 
 ## Cómo lo consume un repo
 
@@ -46,7 +63,7 @@ una versión publicada normal):
 
 ```json
 "devDependencies": {
-  "pw2xray": "git+https://github.com/alcalacar/pw2xray.git#v0.1.1"
+  "pw2xray": "git+https://github.com/alcalacar/pw2xray.git#v0.2.0"
 }
 ```
 
@@ -62,6 +79,22 @@ uploadToXray().catch((err) => {
   process.exitCode = 1;
 });
 ```
+
+Para evidencia por step, sumar el reporter en `playwright.config.ts` (además
+de los reporters que ya tengas, no en su lugar):
+
+```ts
+reporter: [
+  ["html"],
+  ["json", { outputFile: "results/results.json" }],
+  ["pw2xray/step-evidence-reporter", { outputFile: "results/step-evidence.json" }],
+],
+```
+
+Y en el script de upload, después de matchear el Test Run por título/tag,
+cruzar con `collectStepEvidence` y llamar `addEvidenceToTestRunStep` por cada
+step que matchee contra el texto (`data`) de los steps que devuelve Xray para
+ese Test Run.
 
 ## Quién lo usa
 
