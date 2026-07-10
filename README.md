@@ -1,12 +1,28 @@
 # pw2xray
 
-Infraestructura compartida entre los repos de regresión Playwright de Inteligo
-(hoy: `PW_SAB`, `sab-publica`). No es un repo de tests — es la lógica de
-integración con Xray/Jira y utilidades de CI que antes se copiaba y pegaba
-entre repos.
+Cliente ligero de la API de **Xray Cloud** (el add-on de testing de Jira) para
+reportar resultados de **Playwright**: sube ejecuciones JUnit, adjunta
+evidencia (screenshots/adjuntos) a cada Test Run, sincroniza escenarios
+Cucumber con Jira, y de paso trae un hook de pre-commit para escanear
+credenciales hardcodeadas en el diff. Nació para no copiar y pegar esta lógica
+entre varios repos de Playwright propios; si te sirve para el tuyo, adelante.
 
-Se distribuye como **fuente TypeScript sin build**, consumida vía `tsx` en el
-repo que la importa (no hay paso de compilación ni registro npm privado).
+Se distribuye como **fuente TypeScript sin build**, pensada para consumirse
+vía `tsx` (no hay paso de compilación todavía — ver el README del repo para el
+detalle de qué falta para un build/publish "como se debe").
+
+## Requisitos
+
+- Node 18+ (usa `fetch`/`FormData`/`Blob` globales, sin dependencias de red
+  adicionales) o un runtime compatible (Bun).
+- Un runtime de TypeScript en el consumidor (`tsx`, `ts-node`, etc.), porque
+  hoy se importa el `.ts` fuente directamente.
+- Las variables de entorno (`XRAY_CLIENT_ID`, `XRAY_CLIENT_SECRET`,
+  `JIRA_PROJECT_KEY`, etc. — ver abajo) deben estar ya cargadas en
+  `process.env` **antes** de llamar a estas funciones. La librería no carga
+  ningún `.env` por vos (por diseño: no debe decidir eso por el consumidor) —
+  si usás `dotenv`, hacé `import "dotenv/config"` en tu propio script antes de
+  importar `pw2xray`.
 
 ## Qué incluye
 
@@ -30,25 +46,48 @@ una versión publicada normal):
 
 ```json
 "devDependencies": {
-  "pw2xray": "git+https://github.com/alcalacar/pw2xray.git#v0.1.0"
+  "pw2xray": "git+https://github.com/alcalacar/pw2xray.git#v0.1.1"
 }
 ```
 
-Y wrappers finos en `scripts/` del repo consumidor (2-5 líneas cada uno) que
-llaman a las funciones exportadas, pasando la configuración propia de ese repo
-(project key de Jira ya viene de `JIRA_PROJECT_KEY` en `.env`, no hace falta
-pasarlo a mano). Ver `scripts/check-secrets.ts` y `scripts/upload-to-xray.ts`
-en `sab-publica` para el ejemplo de referencia.
+Y un wrapper fino en `scripts/` de tu propio repo (2-5 líneas) que llama a la
+función exportada, después de cargar tu propio `.env`:
 
-Repos consumidores actuales: `PW_SAB` (Custodia SAB, BDD) y `sab-publica` (web
-pública inteligosab.com). Ambos usan además las primitivas de `src/xray.ts`
-directamente en scripts propios (import de features Cucumber, Test Plans,
-verificación contra Jira) que no forman parte de este paquete por ser lógica
-específica de cada repo.
+```ts
+import "dotenv/config";
+import { uploadToXray } from "pw2xray/upload-to-xray";
+
+uploadToXray().catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});
+```
+
+## Quién lo usa
+
+Hoy lo consumen dos repos propios de regresión Playwright: uno con BDD/Cucumber
+sobre un sistema con login, y otro sin login para un sitio público. Ambos usan
+además las primitivas de `src/xray.ts` directamente en scripts propios (import
+de features Cucumber, Test Plans, verificación contra Jira) que no forman
+parte de este paquete por ser lógica específica de cada repo, no genérica.
 
 ## Versionado
 
 Cada cambio que se quiera propagar a los repos consumidores se taggea acá
-(`git tag vX.Y.Z`). Actualizar un consumidor es cambiar el `#vX.Y.Z` de su
-`package.json` y correr `bun install` — nunca automático, siempre a demanda
-del repo consumidor.
+(`git tag vX.Y.Z`, semver). Actualizar un consumidor es cambiar el `#vX.Y.Z` de
+su `package.json` y correr `bun install`/`npm install` — nunca automático,
+siempre a demanda del repo consumidor.
+
+## Roadmap hacia un publish "de verdad" a npm
+
+Hoy funciona bien como dependencia git entre repos que ya usan `tsx`. Para que
+tenga sentido publicarlo en el índice público de npm (audiencia que no
+controla su propio toolchain), falta:
+
+- **Build real**: compilar a JS + generar `.d.ts` (hoy se distribuye el `.ts`
+  fuente sin compilar, así que solo funciona si el consumidor también corre
+  TypeScript directo).
+- **Tests**: al menos de la parte sin red (`collectSpecsWithImages`).
+- **CI**: typecheck + tests en cada push, y publish automático a npm por tag.
+
+Hasta que eso esté, seguir consumiéndolo como dependencia git.

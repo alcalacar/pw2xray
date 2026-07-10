@@ -1,8 +1,19 @@
 {
   "name": "pw2xray",
-  "version": "0.1.0",
-  "description": "Infraestructura compartida de Xray/Jira y utilidades de CI para los repos de regresión Playwright de Inteligo (PW_SAB, sab-publica, ...).",
+  "version": "0.1.1",
+  "description": "Cliente ligero de la API de Xray Cloud (Jira) para reportar resultados de Playwright: sube ejecuciones JUnit, adjunta evidencia por test, sincroniza escenarios Cucumber y escanea secretos en pre-commit.",
   "type": "commonjs",
+  "license": "MIT",
+  "author": "Carlos Alcalá <alcalacarcis@gmail.com>",
+  "homepage": "https://github.com/alcalacar/pw2xray#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alcalacar/pw2xray.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alcalacar/pw2xray/issues"
+  },
+  "keywords": ["playwright", "xray", "jira", "cucumber", "testing", "qa", "ci"],
   "main": "src/xray.ts",
   "files": ["src"],
   "exports": {
@@ -14,12 +25,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
-  "peerDependencies": {
-    "dotenv": ">=16"
-  },
   "devDependencies": {
     "@types/node": "^25.0.3",
-    "dotenv": "^17.4.2",
     "typescript": "^7.0.2"
   }
 }

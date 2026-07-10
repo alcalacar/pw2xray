@@ -1,4 +1,3 @@
-import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { XRAY_API, getCloudToken, graphql, sleep } from "./xray";
