@@ -7,6 +7,7 @@ export default class StepEvidenceReporter implements Reporter {
     private outputFile;
     private records;
     constructor(options?: StepEvidenceReporterOptions);
+    printsToStdio(): boolean;
     onStepEnd(test: TestCase, _result: TestResult, step: TestStep): void;
     onEnd(): void;
 }

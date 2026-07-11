@@ -1,6 +1,6 @@
 {
   "name": "pw2xray",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Cliente ligero de la API de Xray Cloud (Jira) para reportar resultados de Playwright: sube ejecuciones JUnit/Cucumber, adjunta evidencia por test y por step, sincroniza escenarios Cucumber (import+verificar+tag) y escanea secretos en pre-commit.",
   "type": "commonjs",
   "license": "MIT",

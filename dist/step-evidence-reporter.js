@@ -23,6 +23,17 @@ class StepEvidenceReporter {
     constructor(options = {}) {
         this.outputFile = options.outputFile || path_1.default.resolve(process.cwd(), "results", "step-evidence.json");
     }
+    // Sin esto, Playwright asume por defecto que este reporter SI imprime a
+    // terminal (runner/index.js: `r.printsToStdio ? r.printsToStdio() : true`),
+    // lo que apaga el reporter "line"/"dot" que Playwright agrega automaticamente
+    // cuando ningun reporter configurado reclama la terminal -- confirmado en
+    // vivo: con este reporter activo (junto a html/junit/json, que si declaran
+    // printsToStdio()=false por tener outputFile) la corrida funcionaba bien
+    // (junit/json/step-evidence.json se generaban) pero sin NINGUN output de
+    // progreso ni resumen final en terminal.
+    printsToStdio() {
+        return false;
+    }
     onStepEnd(test, _result, step) {
         if (!step.attachments || step.attachments.length === 0)
             return;
